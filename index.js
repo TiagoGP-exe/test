@@ -18,7 +18,7 @@ app.get("/api", async (req, res) => {
       args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
       defaultViewport: chrome.defaultViewport,
       executablePath: await chrome.executablePath,
-      headless: true,
+      headless: "new",
       ignoreHTTPSErrors: true,
     };
   }
@@ -26,9 +26,15 @@ app.get("/api", async (req, res) => {
   try {
     let browser = await puppeteer.launch(options);
 
-    let page = await browser.newPage();
-    await page.goto("https://www.google.com");
-    res.send(await page.title());
+    let [page] = await browser.pages();
+    await page.goto("https://www.google.com", {
+      waitUntil: "load",
+    });
+
+    const title = await page.title();
+
+    // await browser.close();
+    return res.send(await page.title());
   } catch (err) {
     console.error(err);
     return null;
